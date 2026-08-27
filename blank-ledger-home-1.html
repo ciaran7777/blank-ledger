@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>The Blank Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     CONFIG — the only two things you need to touch to get going
+     ============================================================ */
+
+  /* The first time you open this on a device, it'll ask for your
+     free Pexels API key once and remember it on that device only —
+     the key is never written into this file, so it's safe to host
+     this file publicly (e.g. GitHub Pages) without exposing it. */
+
+  :root{
+    /* ---- palette : wood, ink, aged paper, brass — not decoration, structure ---- */
+    --ink:        #15120e;   /* near-black walnut, the ledger's cover */
+    --ink-soft:   #211c15;
+    --paper:      #d9c9a3;   /* aged paper — used sparingly, for text only */
+    --paper-dim:  rgba(217,201,163,0.62);
+    --brass:      #a9793f;   /* the Wheel's colour, and nothing else */
+    --room-study: #5f6f52;  /* moss */
+    --room-work:  #48545c;  /* slate */
+    --room-football: #8c4a3d; /* ember */
+
+    --serif: 'Fraunces', Georgia, serif;
+    --sans:  'IBM Plex Sans', -apple-system, sans-serif;
+    --mono:  'IBM Plex Mono', monospace;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body{ height:100%; overflow:hidden; background:var(--ink); }
+  body{ font-family:var(--sans); color:var(--paper); }
+
+  #app{ position:fixed; inset:0; touch-action:pan-y; }
+
+  /* ---- ROOMS — a horizontal strip, one screen wide each ---- */
+  #rooms{
+    position:absolute; inset:0; display:flex; width:400%; height:100%;
+    transition: transform 0.55s cubic-bezier(.22,.61,.36,1);
+  }
+  .room{ position:relative; width:25%; height:100%; overflow:hidden; flex-shrink:0; }
+
+  /* ---- HOME ---- */
+  #room-home .photo{
+    position:absolute; inset:-4%; background-size:cover; background-position:center;
+    filter:saturate(0.92) contrast(1.02);
+    animation: drift 90s ease-in-out infinite alternate;
+  }
+  @media (prefers-reduced-motion: reduce){ #room-home .photo{ animation:none; } }
+  @keyframes drift{ from{ transform:scale(1.0); } to{ transform:scale(1.06); } }
+
+  #room-home .scrim{
+    position:absolute; inset:0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 62%, rgba(0,0,0,0.55) 100%);
+  }
+
+  .placeholder-note{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:0 15%; font-family:var(--serif); font-weight:300;
+    font-size:1.1rem; color:var(--paper-dim); line-height:1.6;
+  }
+
+  .clock{
+    position:absolute; top:6%; left:7%; font-family:var(--serif); font-weight:300;
+    line-height:1;
+  }
+  .clock .time{ font-size:2.4rem; letter-spacing:0.02em; }
+  .clock .period{
+    margin-top:6px; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--paper-dim);
+  }
+
+  .tiny-thing{
+    position:absolute; left:8%; right:8%; bottom:13%; text-align:center;
+    font-family:var(--serif); font-style:italic; font-weight:300; font-size:0.98rem;
+    color:var(--paper-dim); line-height:1.5;
+    opacity:0; animation: fadeIn 1.4s ease forwards 0.6s;
+  }
+  @keyframes fadeIn{ to{ opacity:1; } }
+
+  /* ---- THE WHEEL — the one ornament the whole house permits itself ---- */
+  .wheel-glyph{
+    position:absolute; top:6%; right:7%; width:34px; height:34px; cursor:pointer;
+    opacity:0.85;
+  }
+  .wheel-glyph svg{ width:100%; height:100%; display:block; }
+
+  #wheel-overlay{
+    position:absolute; inset:0; background:rgba(10,8,6,0.92);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity 0.35s ease;
+    text-align:center; padding:0 8%;
+  }
+  #wheel-overlay.open{ opacity:1; pointer-events:auto; }
+  #wheel-overlay svg{ width:min(72vw, 300px); height:min(72vw, 300px); }
+  #wheel-overlay .wheel-caption{
+    margin-top:22px; font-family:var(--serif); font-weight:400; font-size:1.05rem; max-width:340px;
+  }
+  #wheel-overlay .wheel-sub{
+    margin-top:10px; font-family:var(--mono); font-size:0.7rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--paper-dim);
+  }
+  .wheel-segment{ cursor:pointer; }
+  .wheel-segment .arc{ fill:transparent; stroke:rgba(217,201,163,0.28); stroke-width:1; transition:stroke 0.2s; }
+  .wheel-segment.active .arc{ stroke:var(--brass); stroke-width:1.6; }
+
+  /* ---- OTHER ROOMS (Study / Work / Football) — quiet, undressed for now ---- */
+  .room-plain{ display:flex; align-items:center; justify-content:center; height:100%; }
+  .room-plain .card{ text-align:center; padding:0 12%; }
+  .room-plain h1{
+    font-family:var(--serif); font-weight:400; font-size:1.7rem; letter-spacing:0.02em;
+    margin-bottom:14px;
+  }
+  .room-plain p{ font-family:var(--serif); font-weight:300; font-style:italic; color:var(--paper-dim); font-size:1rem; line-height:1.6; }
+
+  #room-study{ background:linear-gradient(160deg, var(--ink) 0%, #232a1e 100%); }
+  #room-work{ background:linear-gradient(160deg, var(--ink) 0%, #1c2226 100%); }
+  #room-football{ background:linear-gradient(160deg, var(--ink) 0%, #291a16 100%); }
+  #room-study h1{ color:#b9c4a9; }
+  #room-work h1{ color:#a9b6bd; }
+  #room-football h1{ color:#c99a8f; }
+
+  /* ---- THE DOCK — four unlabeled rooms, one small brass mark for "here" ---- */
+  #dock{
+    position:absolute; left:50%; bottom:4%; transform:translateX(-50%);
+    display:flex; gap:26px; z-index:10; padding:10px 18px;
+  }
+  .dock-item{ width:22px; height:22px; opacity:0.55; transition:opacity 0.3s; cursor:pointer; position:relative; }
+  .dock-item svg{ width:100%; height:100%; stroke:var(--paper); fill:none; stroke-width:1.3; }
+  .dock-item.active{ opacity:1; }
+  .dock-item.active::after{
+    content:''; position:absolute; left:50%; bottom:-9px; transform:translateX(-50%);
+    width:4px; height:4px; border-radius:50%; background:var(--brass);
+  }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="rooms">
+
+    <!-- ROOM 1 — HOME -->
+    <section class="room" id="room-home">
+      <div class="photo" id="home-photo"></div>
+      <div class="scrim"></div>
+      <div class="placeholder-note" id="home-placeholder" style="display:none;">
+        Add a Pexels API key to let the photograph in —<br>until then, the room stays empty on purpose.
+      </div>
+      <div class="clock">
+        <div class="time" id="clock-time">--:--</div>
+        <div class="period" id="clock-period">·</div>
+      </div>
+      <div class="wheel-glyph" id="wheel-open">
+        <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="var(--brass)" stroke-width="1.2"/><path d="M20 3 A17 17 0 0 1 20 37 A8.5 8.5 0 0 1 20 20 A8.5 8.5 0 0 0 20 3 Z" fill="var(--brass)" opacity="0.85"/><circle cx="20" cy="11.5" r="2.4" fill="var(--ink)"/><circle cx="20" cy="28.5" r="2.4" fill="var(--brass)"/></svg>
+      </div>
+      <div class="tiny-thing" id="tiny-thing"></div>
+    </section>
+
+    <!-- ROOM 2 — STUDY -->
+    <section class="room room-plain" id="room-study">
+      <div class="card">
+        <h1>Study</h1>
+        <p>Reading, notes, and the Wheel's slower currents<br>will live here.</p>
+      </div>
+    </section>
+
+    <!-- ROOM 3 — WORK -->
+    <section class="room room-plain" id="room-work">
+      <div class="card">
+        <h1>Work</h1>
+        <p>Mail, documents, and the day's tasks —<br>kept out of Home on purpose.</p>
+      </div>
+    </section>
+
+    <!-- ROOM 4 — FOOTBALL -->
+    <section class="room room-plain" id="room-football">
+      <div class="card">
+        <h1>Football</h1>
+        <p>Fixtures and the game, entered<br>deliberately, left the same way.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- DOCK -->
+  <div id="dock">
+    <div class="dock-item active" data-room="0" title="Home">
+      <svg viewBox="0 0 24 24"><path d="M4 11.5L12 4l8 7.5M6 10v9h5v-6h2v6h5v-9"/></svg>
+    </div>
+    <div class="dock-item" data-room="1" title="Study">
+      <svg viewBox="0 0 24 24"><path d="M4 6.5c2-1 5-1 8 0.5 3-1.5 6-1.5 8-0.5v12c-2-1-5-1-8 0.5-3-1.5-6-1.5-8-0.5z"/></svg>
+    </div>
+    <div class="dock-item" data-room="2" title="Work">
+      <svg viewBox="0 0 24 24"><rect x="4" y="7.5" width="16" height="11" rx="1"/><path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5"/></svg>
+    </div>
+    <div class="dock-item" data-room="3" title="Football">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5l3.5 2.5-1.3 4H9.8l-1.3-4z"/></svg>
+    </div>
+  </div>
+
+  <!-- WHEEL OVERLAY -->
+  <div id="wheel-overlay">
+    <svg id="wheel-svg" viewBox="0 0 220 220"></svg>
+    <div class="wheel-caption" id="wheel-caption">—</div>
+    <div class="wheel-sub" id="wheel-sub">tap a segment · tap outside to close</div>
+  </div>
+
+  <!-- ONE-TIME KEY SETUP — appears only until a key is stored on this device -->
+  <div id="key-setup" style="position:fixed;inset:0;background:rgba(10,8,6,0.94);display:none;
+      align-items:center;justify-content:center;flex-direction:column;padding:0 10%;z-index:50;text-align:center;">
+    <div style="font-family:'Fraunces',serif;font-weight:300;font-size:1.05rem;color:#d9c9a3;margin-bottom:18px;line-height:1.6;">
+      Paste your free Pexels API key to let photographs in.<br>It stays on this device only.
+    </div>
+    <input id="key-input" type="text" placeholder="Pexels API key" style="width:100%;max-width:340px;padding:12px 14px;
+      font-family:'IBM Plex Mono',monospace;font-size:0.85rem;border-radius:4px;border:1px solid #a9793f;
+      background:#211c15;color:#d9c9a3;outline:none;">
+    <button id="key-save" style="margin-top:16px;padding:10px 26px;border-radius:4px;border:none;
+      background:#a9793f;color:#15120e;font-family:'IBM Plex Sans',sans-serif;font-size:0.85rem;cursor:pointer;">
+      Save
+    </button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   1. THE ORGAN CLOCK — the twelve two-hour tides
+   ============================================================ */
+const ORGAN_CLOCK = [
+  { start: 23, organ: "Gallbladder", element: "Wood",  note: "The gallbladder's hour — decisions ripen quietly before the body sleeps." },
+  { start: 1,  organ: "Liver",       element: "Wood",  note: "The liver's hour — the traditional time for the deepest repair of sleep." },
+  { start: 3,  organ: "Lung",        element: "Metal", note: "The lung's hour — breath said to be at its lowest ebb before dawn." },
+  { start: 5,  organ: "Large Intestine", element: "Metal", note: "The large intestine's hour — the old clock's hour for release, before the day starts." },
+  { start: 7,  organ: "Stomach",     element: "Earth", note: "The stomach's hour — traditionally the best-fed hour of the day." },
+  { start: 9,  organ: "Spleen",      element: "Earth", note: "The spleen's hour — thought to govern how the morning's food becomes energy." },
+  { start: 11, organ: "Heart",       element: "Fire",  note: "The heart's hour — midday, said to be when circulation runs strongest." },
+  { start: 13, organ: "Small Intestine", element: "Fire", note: "The small intestine's hour — sorting the useful from the discarded, just after noon." },
+  { start: 15, organ: "Bladder",     element: "Water", note: "The bladder's hour — the old clock's afternoon low tide." },
+  { start: 17, organ: "Kidney",      element: "Water", note: "The kidney's hour — reserves said to be drawn on as the light goes." },
+  { start: 19, organ: "Pericardium", element: "Fire",  note: "The pericardium's hour — evening, the hour traditionally kept for unwinding the heart." },
+  { start: 21, organ: "Triple Burner", element: "Fire", note: "The triple burner's hour — the body said to be settling its temperature before rest." },
+];
+function currentOrganPeriod(hour){
+  // find the last period whose start hour is <= now, wrapping around midnight
+  let best = ORGAN_CLOCK[ORGAN_CLOCK.length-1];
+  for(const p of ORGAN_CLOCK){
+    const s = p.start;
+    if (s <= hour) best = p;
+  }
+  if (hour < ORGAN_CLOCK[0].start && hour < 1) best = ORGAN_CLOCK[ORGAN_CLOCK.length-1];
+  return best;
+}
+
+/* ============================================================
+   2. TIME OF DAY + SEASON  (device clock only — no location used)
+   ============================================================ */
+function timeOfDay(hour){
+  if (hour >= 5 && hour < 8)  return "dawn";
+  if (hour >= 8 && hour < 17) return "day";
+  if (hour >= 17 && hour < 20) return "dusk";
+  return "night";
+}
+function season(month){
+  // Northern-hemisphere mapping — swap if this ever travels south of the equator.
+  if ([2,3,4].includes(month)) return "spring";
+  if ([5,6,7].includes(month)) return "summer";
+  if ([8,9,10].includes(month)) return "autumn";
+  return "winter";
+}
+
+/* ============================================================
+   3. THE PHOTOGRAPHIC POOL — categories, not one wallpaper
+   ============================================================ */
+const CATEGORIES = [
+  "misty mountains", "flowing river", "old growth forest", "ancient stone village",
+  "black and white landscape photography", "celtic ruins ireland", "star field night sky",
+  "medieval architecture", "wild moorland", "coastal cliffs", "old map parchment",
+  "viking longship coast"
+];
+
+const TINY_THINGS = {
+  spring: "Spring, in the five-phase reading, belongs to Wood — the season of things pushing upward.",
+  summer: "Summer belongs to Fire — the height of outward, expressive energy in the old five-phase system.",
+  autumn: "Autumn belongs to Metal — traditionally read as a season of gathering in and letting go.",
+  winter: "Winter belongs to Water — the phase associated with stillness and stored reserve."
+};
+
+/* ============================================================
+   4. CONFIG — put your free Pexels key here
+      Get one at https://www.pexels.com/api/  (free, instant)
+   ============================================================ */
+// The key is never written into this file. It's entered once on this
+// device and kept in the browser's local storage, so the file itself
+// (and anywhere it's hosted, even publicly) contains no secret.
+function getStoredKey(){ return localStorage.getItem("pexels_api_key") || ""; }
+function setStoredKey(k){ localStorage.setItem("pexels_api_key", k); }
+
+async function fetchPhoto(query){
+  const key = getStoredKey();
+  if(!key){ return { url:null, reason:"no key set" }; }
+  try{
+    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&orientation=portrait&per_page=15`, {
+      headers: { Authorization: key }
+    });
+    if(!res.ok){
+      let bodyText = "";
+      try{ bodyText = await res.text(); }catch(e){}
+      return { url:null, reason:`HTTP ${res.status} — ${bodyText.slice(0,120)}` };
+    }
+    const data = await res.json();
+    if(!data.photos || !data.photos.length) return { url:null, reason:"no results for this query" };
+    const pick = data.photos[Math.floor(Math.random()*data.photos.length)];
+    return { url: pick.src.portrait || pick.src.large2x || pick.src.large, reason:null };
+  }catch(e){
+    return { url:null, reason:`fetch error — ${e.message}` };
+  }
+}
+
+/* ============================================================
+   5. RENDER — clock, tiny thing, photo
+   ============================================================ */
+async function renderHome(){
+  const now = new Date();
+  const hour = now.getHours();
+  const tod = timeOfDay(hour);
+  const seas = season(now.getMonth());
+  const organ = currentOrganPeriod(hour);
+
+  document.getElementById("clock-time").textContent =
+    now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+  document.getElementById("clock-period").textContent = `${organ.organ} · ${tod}`;
+
+  document.getElementById("tiny-thing").textContent =
+    Math.random() < 0.5 ? organ.note : TINY_THINGS[seas];
+
+  const category = CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)];
+  const query = `${category} ${tod}`;
+  const { url, reason } = await fetchPhoto(query);
+  const photoEl = document.getElementById("home-photo");
+  const placeholderEl = document.getElementById("home-placeholder");
+  if(url){
+    photoEl.style.backgroundImage = `url('${url}')`;
+    placeholderEl.style.display = "none";
+  } else {
+    photoEl.style.backgroundImage = "none";
+    placeholderEl.style.display = "flex";
+    placeholderEl.textContent = "Photo didn't load — " + reason;
+    console.warn("Blank Ledger photo fetch:", reason);
+  }
+}
+renderHome();
+setInterval(renderHome, 30 * 60 * 1000); // refresh every 30 minutes
+setInterval(()=>{ // keep the clock face itself live every minute without refetching a photo
+  const now = new Date();
+  document.getElementById("clock-time").textContent =
+    now.getHours().toString().padStart(2,"0") + ":" + now.getMinutes().toString().padStart(2,"0");
+}, 60*1000);
+
+/* ============================================================
+   6b. ONE-TIME KEY SETUP
+   ============================================================ */
+const keySetup = document.getElementById("key-setup");
+if(!getStoredKey()){
+  keySetup.style.display = "flex";
+}
+document.getElementById("key-save").addEventListener("click", ()=>{
+  const val = document.getElementById("key-input").value.trim();
+  if(val){
+    setStoredKey(val);
+    keySetup.style.display = "none";
+    renderHome();
+  }
+});
+
+/* ============================================================
+   6. ROOM NAVIGATION — dock taps + swipe
+   ============================================================ */
+const ROOM_COUNT = 4;
+let currentRoom = 0;
+const roomsEl = document.getElementById("rooms");
+const dockItems = document.querySelectorAll(".dock-item");
+
+function goToRoom(i){
+  currentRoom = Math.max(0, Math.min(ROOM_COUNT-1, i));
+  roomsEl.style.transform = `translateX(-${currentRoom * 25}%)`;
+  dockItems.forEach(d => d.classList.toggle("active", Number(d.dataset.room) === currentRoom));
+}
+dockItems.forEach(d => d.addEventListener("click", ()=> goToRoom(Number(d.dataset.room))));
+
+let touchStartX = null;
+document.getElementById("app").addEventListener("touchstart", e=>{
+  touchStartX = e.touches[0].clientX;
+});
+document.getElementById("app").addEventListener("touchend", e=>{
+  if(touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) > 60){ goToRoom(currentRoom + (dx < 0 ? 1 : -1)); }
+  touchStartX = null;
+});
+
+/* ============================================================
+   7. THE WHEEL — tap to open, one tiny thing per segment
+   ============================================================ */
+const wheelOverlay = document.getElementById("wheel-overlay");
+const wheelSvg = document.getElementById("wheel-svg");
+const wheelCaption = document.getElementById("wheel-caption");
+
+function buildWheel(){
+  const cx = 110, cy = 110, r = 92, inner = 60;
+  const now = new Date();
+  const activeIdx = ORGAN_CLOCK.findIndex(p => p.start === currentOrganPeriod(now.getHours()).start);
+  let svg = "";
+  ORGAN_CLOCK.forEach((p, i)=>{
+    const a0 = (i/12) * 2*Math.PI - Math.PI/2;
+    const a1 = ((i+1)/12) * 2*Math.PI - Math.PI/2;
+    const x0o = cx + r*Math.cos(a0), y0o = cy + r*Math.sin(a0);
+    const x1o = cx + r*Math.cos(a1), y1o = cy + r*Math.sin(a1);
+    const x0i = cx + inner*Math.cos(a0), y0i = cy + inner*Math.sin(a0);
+    const x1i = cx + inner*Math.cos(a1), y1i = cy + inner*Math.sin(a1);
+    const path = `M ${x0i} ${y0i} L ${x0o} ${y0o} A ${r} ${r} 0 0 1 ${x1o} ${y1o} L ${x1i} ${y1i} A ${inner} ${inner} 0 0 0 ${x0i} ${y0i} Z`;
+    svg += `<g class="wheel-segment${i===activeIdx?' active':''}" data-i="${i}"><path class="arc" d="${path}"/></g>`;
+  });
+  wheelSvg.innerHTML = svg;
+  wheelCaption.textContent = ORGAN_CLOCK[activeIdx].note;
+
+  wheelSvg.querySelectorAll(".wheel-segment").forEach(seg=>{
+    seg.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      const p = ORGAN_CLOCK[Number(seg.dataset.i)];
+      wheelCaption.textContent = `${p.organ} (${p.element}) — ${p.note}`;
+    });
+  });
+}
+document.getElementById("wheel-open").addEventListener("click", ()=>{
+  buildWheel();
+  wheelOverlay.classList.add("open");
+});
+wheelOverlay.addEventListener("click", (e)=>{
+  if(e.target === wheelOverlay){ wheelOverlay.classList.remove("open"); }
+});
+</script>
+</body>
+</html>
