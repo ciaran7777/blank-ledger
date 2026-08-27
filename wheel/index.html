@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0E0E10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>The Wheel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,200;0,300;0,400;1,300&family=Karla:wght@400;500&family=Noto+Serif+SC:wght@200;300&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:      #0E0E10;
+    --ink-lift: #16161A;
+    --paper:    #D9CFBC;
+    --paper-dim:rgba(217,207,188,0.46);
+    --hair:     rgba(217,207,188,0.16);
+
+    --wood:  #6B7F5C;
+    --fire:  #A85440;
+    --earth: #A88C5F;
+    --metal: #9BA3A8;
+    --water: #3E5265;
+
+    --display: 'Spectral', Georgia, serif;
+    --han:     'Noto Serif SC', 'Spectral', serif;
+    --util:    'Karla', system-ui, sans-serif;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; background:var(--ink); overscroll-behavior:none; }
+  body{
+    font-family:var(--display); color:var(--paper);
+    display:flex; flex-direction:column; align-items:center;
+    padding: max(20px, env(safe-area-inset-top)) 22px max(24px, env(safe-area-inset-bottom));
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- the wheel ---------- */
+  #wheel-wrap{
+    width:min(86vw, 460px); aspect-ratio:1; flex-shrink:0;
+    margin-top: 2vh;
+    opacity:0; animation: settle 1.2s cubic-bezier(.16,1,.3,1) forwards;
+  }
+  @keyframes settle{
+    from{ opacity:0; transform:rotate(-6deg) scale(0.97); }
+    to  { opacity:1; transform:rotate(0) scale(1); }
+  }
+  svg{ width:100%; height:100%; display:block; overflow:visible; }
+
+  .seg-hit{ fill:transparent; cursor:pointer; }
+  .seg-arc{
+    fill:none; stroke:var(--hair); stroke-width:1.25;
+    transition: stroke 420ms ease, stroke-width 420ms ease, opacity 420ms ease;
+  }
+  .seg-arc.lit{ stroke-width:7; opacity:1; }
+  .seg-arc.dim{ opacity:0.5; }
+
+  .tick{ stroke:var(--hair); stroke-width:1; }
+
+  .now-dot{
+    fill:var(--paper);
+    animation: pulse 5.5s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ opacity:.85; } 50%{ opacity:.35; } }
+
+  #centre-han{
+    font-family:var(--han); font-weight:200;
+    font-size:82px; fill:var(--paper);
+    text-anchor:middle; dominant-baseline:central;
+    transition: fill 500ms ease;
+  }
+  #centre-hours{
+    font-family:var(--util); font-weight:400;
+    font-size:12.5px; letter-spacing:.22em;
+    fill:var(--paper-dim); text-anchor:middle;
+  }
+
+  /* ---------- the reading ---------- */
+  #reading{
+    margin-top: 3.2vh; max-width:34rem; text-align:center;
+    opacity:0; animation: rise 900ms cubic-bezier(.16,1,.3,1) 420ms forwards;
+  }
+  @keyframes rise{ from{ opacity:0; transform:translateY(9px);} to{ opacity:1; transform:none;} }
+
+  #organ{
+    font-weight:200; font-size:clamp(2rem, 8.5vw, 2.9rem);
+    line-height:1.05; letter-spacing:-.01em;
+    transition: opacity 260ms ease;
+  }
+  #phase-line{
+    margin-top:.85rem;
+    font-family:var(--util); font-weight:500;
+    font-size:.68rem; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--paper-dim);
+    transition: color 500ms ease, opacity 260ms ease;
+  }
+  #note{
+    margin-top:1.5rem;
+    font-weight:300; font-style:italic;
+    font-size:clamp(.98rem, 4vw, 1.1rem); line-height:1.62;
+    color:rgba(217,207,188,0.76);
+    transition: opacity 260ms ease;
+  }
+  .swapping #organ, .swapping #phase-line, .swapping #note{ opacity:0; }
+
+  #footnote{
+    margin-top:auto; padding-top:2.2rem;
+    font-family:var(--util); font-size:.62rem;
+    letter-spacing:.24em; text-transform:uppercase;
+    color:rgba(217,207,188,0.24);
+    transition: opacity 400ms ease;
+  }
+  #footnote.hidden{ opacity:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    #wheel-wrap, #reading{ animation:none; opacity:1; }
+    .now-dot{ animation:none; }
+    *{ transition-duration: 1ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="wheel-wrap">
+  <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="The twelve two-hour periods of the traditional Chinese organ clock">
+    <g id="ticks"></g>
+    <g id="segments"></g>
+    <circle class="now-dot" id="nowDot" r="3.2" cx="200" cy="20"/>
+    <text id="centre-han" x="200" y="192">水</text>
+    <text id="centre-hours" x="200" y="243">23:00 – 01:00</text>
+  </svg>
+</div>
+
+<div id="reading">
+  <div id="organ">—</div>
+  <div id="phase-line">—</div>
+  <div id="note">—</div>
+</div>
+
+<div id="footnote">tap the ring · tap the centre to return to now</div>
+
+<script>
+const PHASES = {
+  wood:  { han:'木', name:'Wood',  colour:'#6B7F5C' },
+  fire:  { han:'火', name:'Fire',  colour:'#A85440' },
+  earth: { han:'土', name:'Earth', colour:'#A88C5F' },
+  metal: { han:'金', name:'Metal', colour:'#9BA3A8' },
+  water: { han:'水', name:'Water', colour:'#3E5265' },
+};
+
+/* index 0 = 23:00–01:00, each period two hours, clockwise from the top */
+const PERIODS = [
+  { start:23, organ:'Gallbladder',     phase:'wood',
+    note:'Decision, and the nerve to act on it. The old clock puts this hour at the turn of the day, when the body is meant to be going down rather than starting something.' },
+  { start:1,  organ:'Liver',           phase:'wood',
+    note:'Storing and renewing blood. Traditionally the deepest stretch of sleep, and the hour the liver is said to do its repairing.' },
+  { start:3,  organ:'Lung',            phase:'metal',
+    note:'Breath and rhythm. The hour before dawn, held in the old system to be the lowest ebb of the body\u2019s activity.' },
+  { start:5,  organ:'Large Intestine', phase:'metal',
+    note:'Release. Metal\u2019s second hour, given over to clearing out what is no longer wanted before the day begins.' },
+  { start:7,  organ:'Stomach',         phase:'earth',
+    note:'Receiving. The best-fed hour in the old reckoning \u2014 which is roughly where \u201cbreakfast like a king\u201d and the Chinese clock happen to agree.' },
+  { start:9,  organ:'Spleen',          phase:'earth',
+    note:'Transformation. The spleen is said to turn what the stomach took in into usable energy: the hour of getting properly underway.' },
+  { start:11, organ:'Heart',           phase:'fire',
+    note:'Circulation and clarity. Midday, the height of yang, when the heart is traditionally reckoned strongest.' },
+  { start:13, organ:'Small Intestine', phase:'fire',
+    note:'Sorting what nourishes from what does not \u2014 meant literally of food, and read figuratively of everything else.' },
+  { start:15, organ:'Bladder',         phase:'water',
+    note:'Storing and letting go. The old clock\u2019s afternoon low tide, which lines up neatly with the slump most people feel.' },
+  { start:17, organ:'Kidney',          phase:'water',
+    note:'Reserve. The kidneys are said to hold the body\u2019s deepest stores, drawn on as the light goes.' },
+  { start:19, organ:'Pericardium',     phase:'fire',
+    note:'The heart\u2019s protection. Evening: the hour traditionally kept for unwinding, and for company.' },
+  { start:21, organ:'Triple Burner',   phase:'fire',
+    note:'Regulation. Not an organ in the Western sense but a system governing warmth and the passage of fluids \u2014 the body settling itself before rest.' },
+];
+
+const CX = 200, CY = 200, R_OUT = 176, R_TICK = 158;
+const svgNS = 'http://www.w3.org/2000/svg';
+
+const pt = (deg, r) => {
+  const a = (deg - 90) * Math.PI / 180;
+  return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+};
+const arcPath = (a0, a1, r) => {
+  const [x0,y0] = pt(a0, r), [x1,y1] = pt(a1, r);
+  return `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+};
+const pad = n => String(n).padStart(2,'0');
+const hoursLabel = p => `${pad(p.start)}:00 \u2013 ${pad((p.start+2)%24)}:00`;
+
+/* ---- build the ring ---- */
+const gSeg = document.getElementById('segments');
+const gTick = document.getElementById('ticks');
+const arcs = [];
+
+PERIODS.forEach((p, i) => {
+  const a0 = i*30 - 15 + 1.6;   // small gap between segments
+  const a1 = i*30 + 15 - 1.6;
+
+  const arc = document.createElementNS(svgNS, 'path');
+  arc.setAttribute('d', arcPath(a0, a1, R_OUT));
+  arc.setAttribute('class', 'seg-arc');
+  arc.setAttribute('stroke-linecap', 'round');
+  gSeg.appendChild(arc);
+  arcs.push(arc);
+
+  // generous invisible tap target over each segment
+  const hit = document.createElementNS(svgNS, 'path');
+  const [ix0,iy0] = pt(i*30 - 15, R_TICK - 26);
+  const [ox0,oy0] = pt(i*30 - 15, R_OUT + 22);
+  const [ox1,oy1] = pt(i*30 + 15, R_OUT + 22);
+  const [ix1,iy1] = pt(i*30 + 15, R_TICK - 26);
+  hit.setAttribute('d',
+    `M ${ix0} ${iy0} L ${ox0} ${oy0} A ${R_OUT+22} ${R_OUT+22} 0 0 1 ${ox1} ${oy1} L ${ix1} ${iy1} A ${R_TICK-26} ${R_TICK-26} 0 0 0 ${ix0} ${iy0} Z`);
+  hit.setAttribute('class','seg-hit');
+  hit.addEventListener('click', () => show(i, true));
+  gSeg.appendChild(hit);
+
+  // hairline tick pointing inward at the boundary between periods
+  const t = document.createElementNS(svgNS, 'line');
+  const [tx0,ty0] = pt(i*30 - 15, R_TICK);
+  const [tx1,ty1] = pt(i*30 - 15, R_TICK - 9);
+  t.setAttribute('x1',tx0); t.setAttribute('y1',ty0);
+  t.setAttribute('x2',tx1); t.setAttribute('y2',ty1);
+  t.setAttribute('class','tick');
+  gTick.appendChild(t);
+});
+
+/* ---- state ---- */
+const elHan   = document.getElementById('centre-han');
+const elHours = document.getElementById('centre-hours');
+const elOrgan = document.getElementById('organ');
+const elPhase = document.getElementById('phase-line');
+const elNote  = document.getElementById('note');
+const elRead  = document.getElementById('reading');
+const elFoot  = document.getElementById('footnote');
+const nowDot  = document.getElementById('nowDot');
+
+let pinned = null;   // index the user tapped, or null for "now"
+
+function currentIndex(){
+  const h = new Date().getHours();
+  return PERIODS.findIndex(p => {
+    const s = p.start, e = (p.start + 2) % 24;
+    return s < e ? (h >= s && h < e) : (h >= s || h < e);
+  });
+}
+
+function show(i, isPinned){
+  const p = PERIODS[i], ph = PHASES[p.phase];
+  pinned = isPinned ? i : null;
+
+  elRead.classList.add('swapping');
+  setTimeout(() => {
+    elOrgan.textContent = p.organ;
+    elPhase.textContent = `${ph.name} \u00B7 ${hoursLabel(p)}`;
+    elPhase.style.color = ph.colour;
+    elNote.textContent  = p.note;
+    elRead.classList.remove('swapping');
+  }, 180);
+
+  elHan.textContent = ph.han;
+  elHan.style.fill  = ph.colour;
+  elHours.textContent = hoursLabel(p);
+
+  const live = currentIndex();
+  arcs.forEach((a, n) => {
+    a.classList.toggle('lit', n === i);
+    a.classList.toggle('dim', n === live && n !== i);
+    a.style.stroke = (n === i) ? ph.colour
+                   : (n === live) ? PHASES[PERIODS[n].phase].colour
+                   : '';
+  });
+
+  elFoot.classList.toggle('hidden', isPinned === true);
+}
+
+/* the marker tracks the actual minute, not just the period */
+function placeDot(){
+  const d = new Date();
+  const mins = d.getHours()*60 + d.getMinutes();
+  const deg = ((mins - 23*60 + 1440) % 1440) / 1440 * 360 - 15;
+  const [x,y] = pt(deg, R_OUT);
+  nowDot.setAttribute('cx', x.toFixed(2));
+  nowDot.setAttribute('cy', y.toFixed(2));
+}
+
+function toNow(){ show(currentIndex(), false); placeDot(); }
+
+document.getElementById('centre-han').addEventListener('click', toNow);
+document.getElementById('centre-hours').addEventListener('click', toNow);
+document.getElementById('wheel').addEventListener('click', e => {
+  if (e.target.id === 'wheel') toNow();      // tapping empty middle also returns
+});
+
+toNow();
+setInterval(() => { placeDot(); if (pinned === null) show(currentIndex(), false); }, 60000);
+</script>
+</body>
+</html>
