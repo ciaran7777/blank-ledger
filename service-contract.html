@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0f4c3a">
+<title>Service Contract Log</title>
+<style>
+:root{
+  --bg:#ffffff;
+  --card:#ffffff;
+  --ink:#0a0a0a;
+  --ink-soft:#6b6b6b;
+  --line:#c7cdd0;
+  --green:#0f4c3a;
+  --green-dark:#0a382a;
+  --amber:#b5680a;
+  --red:#a3312a;
+  --radius:12px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:16px;line-height:1.4;}
+body{padding-bottom:100px;}
+h1,h2,h3{font-weight:600;margin:0 0 4px;}
+.header{background:var(--green);color:#fff;padding:18px 16px 16px;
+  position:sticky;top:0;z-index:50;}
+.header .row{display:flex;align-items:center;justify-content:space-between;}
+.header h1{font-size:19px;color:#fff;}
+.header .sub{font-size:13px;color:#cfe4dc;margin-top:2px;}
+.icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;
+  width:40px;height:40px;border-radius:10px;font-size:20px;display:flex;
+  align-items:center;justify-content:center;}
+.wrap{padding:16px;max-width:600px;margin:0 auto;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;margin-bottom:14px;}
+.card h2{font-size:15px;color:var(--green);text-transform:uppercase;
+  letter-spacing:.03em;margin-bottom:12px;}
+label{display:block;font-size:13px;color:var(--ink-soft);margin:12px 0 5px;font-weight:500;}
+label:first-of-type{margin-top:0;}
+input[type=text],input[type=date],input[type=tel],input[type=email],select,textarea{
+  width:100%;padding:13px 12px;font-size:16px;border:1.5px solid var(--line);
+  border-radius:9px;background:#fbfcfb;color:var(--ink);font-family:inherit;}
+textarea{min-height:70px;resize:vertical;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);background:#fff;}
+.big-btn{display:block;width:100%;padding:16px;font-size:17px;font-weight:600;
+  border-radius:11px;border:none;text-align:center;cursor:pointer;margin-top:8px;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:active{background:var(--green-dark);}
+.btn-outline{background:#fff;color:var(--green);border:1.5px solid var(--green);}
+.btn-amber{background:var(--amber);color:#fff;}
+.btn-ghost{background:transparent;color:var(--ink-soft);border:1.5px solid var(--line);}
+.btn-danger-text{background:transparent;color:var(--red);border:none;font-size:14px;padding:8px;}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;
+  border-top:1px solid var(--line);display:flex;z-index:50;
+  padding-bottom:env(safe-area-inset-bottom);}
+.tab{flex:1;border:none;background:none;padding:11px 4px 9px;display:flex;
+  flex-direction:column;align-items:center;gap:3px;color:var(--ink-soft);font-size:11px;font-family:inherit;}
+.tab.active{color:var(--green);}
+.tab svg{width:22px;height:22px;}
+.job-item{background:#fff;border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.job-item .code{font-weight:700;color:var(--green);font-size:14px;}
+.job-item .meta{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+.chip{display:inline-block;background:#e6efe9;color:var(--green-dark);
+  font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;margin-top:4px;}
+.machine-row{border:1.5px solid var(--line);border-radius:11px;padding:14px;margin-bottom:12px;
+  background:#fbfcfb;position:relative;}
+.machine-row .remove{position:absolute;top:10px;right:10px;background:none;border:none;
+  color:var(--red);font-size:13px;font-weight:600;}
+.add-machine-btn{width:100%;padding:12px;border:1.5px dashed var(--line);border-radius:10px;
+  background:none;color:var(--green);font-weight:600;font-size:15px;margin-top:4px;}
+.sig-pad{border:2px solid var(--green);border-radius:9px;background:#ffffff;
+  touch-action:none;width:100%;height:170px;display:block;
+  box-shadow:inset 0 0 0 1px #eef4f1;}
+.sig-pad-wrap{position:relative;}
+.sig-pad-hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;
+  color:#c7cdd0;font-size:13px;pointer-events:none;letter-spacing:.02em;}
+.sig-label{display:flex;justify-content:space-between;align-items:center;margin:12px 0 5px;}
+.sig-clear{font-size:12px;color:var(--ink-soft);background:none;border:none;font-weight:600;}
+.field-row{display:flex;gap:10px;}
+.field-row > div{flex:1;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--ink-soft);}
+.empty-state svg{width:52px;height:52px;opacity:.35;margin-bottom:10px;}
+.hint{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+.badge-row{display:flex;gap:8px;margin-bottom:14px;}
+.badge{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:10px;text-align:center;}
+.badge .n{font-size:20px;font-weight:700;color:var(--green);}
+.badge .l{font-size:11px;color:var(--ink-soft);}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,25,20,.5);z-index:100;
+  display:flex;align-items:flex-end;}
+.modal{background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;
+  max-height:85vh;overflow-y:auto;}
+.modal h3{font-size:17px;margin-bottom:14px;}
+.setup-screen{min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;padding:24px;}
+.setup-screen .card{margin-bottom:0;}
+.toast{position:fixed;bottom:90px;left:16px;right:16px;background:var(--green-dark);
+  color:#fff;padding:13px 16px;border-radius:10px;text-align:center;z-index:200;
+  font-size:14px;font-weight:500;}
+hr{border:none;border-top:1px solid var(--line);margin:14px 0;}
+.combo-wrap{position:relative;}
+.combo-list{position:absolute;top:100%;left:0;right:0;background:#fff;
+  border:1.5px solid var(--green);border-top:none;border-radius:0 0 9px 9px;
+  max-height:220px;overflow-y:auto;z-index:40;box-shadow:0 6px 14px rgba(0,0,0,.08);}
+.combo-item{padding:12px;font-size:15px;border-bottom:1px solid var(--line);cursor:pointer;}
+.combo-item.picked{color:var(--green);font-weight:600;background:#f4f9f6;}
+.combo-item:last-child{border-bottom:none;}
+.combo-item.add-new{color:var(--green);font-weight:600;background:#f4f9f6;}
+.combo-item:active{background:#eef4f1;}
+.eng-fixed{background:#fbfcfb;border:1.5px solid var(--line);border-radius:9px;
+  padding:12px;font-size:15px;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+/* ---------- Storage helpers ---------- */
+const DB = {
+  get(key, fallback){ try{ const v = localStorage.getItem('svc_'+key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } },
+  set(key, val){ localStorage.setItem('svc_'+key, JSON.stringify(val)); }
+};
+
+/* ---------- Fixed engineer directory ---------- */
+const ENGINEERS = {
+  CT: { name: 'Ciarán Thornton', phone: '0834206759' },
+  NT: { name: 'Niall Thornton', phone: '0868238017' }
+};
+
+/* ---------- Seed data ---------- */
+const SEED_SITES = ["Navan","Blackrock","St Colmans","Tullamore","Cluain Lir","Portlaoise Hospital",
+  "Fuscos","Loughlinstown Hospital","Mullingar","Monaghan","Newcastle","Wicklow Community Unit",
+  "Wicklow Day Care Unit","LPH","Cowper"];
+
+const SEED_MACHINES = ["Comac Piccolo","Comac Vac","Taski Aero 15","Taski Aero 15 Plus","Taski Aero 8 Plus",
+  "Taski Aero Backpack","Taski Ergodisk 200","Taski Ergodisk 400","Taski Ergodisk 1200","Taski Ergodisk Omni",
+  "Taski Swingo 350","Taski Swingo 455","Taski Swingo 755","Taski Swingo 755 BMS","Taski Swingo 855",
+  "Taski Swingo 1255","Taski Swingo 2100","Taski Swingo 250","Taski S6.3","Numatic Vac","Numatic Speed",
+  "Nilfisk GM80","Nilfisk 3020","Nilfisk SC430","PacVac","Vacumat","Vacumat 22","Ultimaxx 360","Ultimaxx 900",
+  "Vento","Vento 15","SDV8 (Steam)","Henry","Wet Vac","TMB Vac"];
+
+const SEED_PARTS = ["HEPA filter","Primary filter","Secondary filter","Cone filter","Foam filter",
+  "Filters cleared","Front blade","Rear blade","Front and rear blades","Squeegee blade set",
+  "Floor tool","Steel pipes","Plastic elbow","Extension hose","Vac hose","Hose seal","Cable",
+  "Cable clamp","Bin seal","Bin clip","Tank clip","Tank seal","Tank lid","Water tank lid",
+  "Dirty water cap","Clean water tank cap","Mounting bracket","Solenoid valve","Batteries (12v 50Ah)",
+  "Wheels","Caster","Handle","Motor","Switch","Fuse","Drive disc","Hi-speed disc","Brush",
+  "Gasket seal","Pitch latch","Service and test","No parts required"];
+
+/* ---------- State init ---------- */
+let state = {
+  screen: DB.get('engineerPrefix', null) ? 'jobs' : 'setup',
+  engineerPrefix: DB.get('engineerPrefix', null),
+  sites: DB.get('sites', SEED_SITES.slice()),
+  machines: DB.get('machines', SEED_MACHINES.slice()),
+  parts: DB.get('parts', SEED_PARTS.slice()),
+  jobs: DB.get('jobs', []),
+  counters: DB.get('counters', {}),
+  draft: DB.get('draft', null),
+  modal: null,
+  toast: null,
+  openCombo: null
+};
+// If there was an in-progress job when the app last closed, go straight back into it
+// rather than losing it — this covers back-button taps, accidental closes, or crashes.
+if (state.draft && state.screen === 'jobs'){
+  state.screen = 'newjob';
+}
+
+function engineer(){ return ENGINEERS[state.engineerPrefix]; }
+
+function saveState(){
+  DB.set('sites', state.sites);
+  DB.set('machines', state.machines);
+  DB.set('parts', state.parts);
+  DB.set('jobs', state.jobs);
+  DB.set('counters', state.counters);
+  if (state.engineerPrefix) DB.set('engineerPrefix', state.engineerPrefix);
+}
+
+function showToast(msg){
+  state.toast = msg;
+  render();
+  setTimeout(()=>{ state.toast = null; render(); }, 2200);
+}
+
+function nextJobCode(){
+  const prefix = state.engineerPrefix;
+  const n = (state.counters[prefix] || 0) + 1;
+  state.counters[prefix] = n;
+  return prefix + String(n).padStart(3,'0');
+}
+
+function newDraft(){
+  return {
+    id: 'j_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    code: null,
+    date: new Date().toISOString().slice(0,10),
+    site: '',
+    customer: { name:'', phone:'', email:'' },
+    machines: [ newMachineEntry() ],
+    followOn: '',
+    notes: '',
+    engineerSig: null,
+    customerSig: null,
+    createdAt: Date.now()
+  };
+}
+function newMachineEntry(){
+  return { id:'m_'+Date.now()+Math.random().toString(36).slice(2,7), machine:'', serial:'',
+    partsReplaced:[], partsNeeded:[] };
+}
+
+/* ---------- Rendering ---------- */
+const app = document.getElementById('app');
+
+function render(){
+  let html = '';
+  if (state.screen === 'setup') html = renderSetup();
+  else if (state.screen === 'jobs') html = renderJobsList();
+  else if (state.screen === 'newjob') html = renderJobForm();
+  else if (state.screen === 'signoff') html = renderSignoff();
+  else if (state.screen === 'settings') html = renderSettings();
+  else if (state.screen === 'endofday') html = renderEndOfDay();
+  else if (state.screen === 'deletejobs') html = renderDeleteJobs();
+
+  if (state.modal) html += renderModal();
+  if (state.toast) html += `<div class="toast">${escapeHtml(state.toast)}</div>`;
+
+  app.innerHTML = html;
+  attachHandlers();
+  if (state.screen === 'signoff') setTimeout(initSignaturePads, 30);
+
+  // Persist the in-progress job on every render so a back-button tap, accidental
+  // close, or crash can never wipe out work already entered.
+  if (state.draft) DB.set('draft', state.draft);
+}
+
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function icon(name){
+  const icons = {
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+    settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>',
+    empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>'
+  };
+  return icons[name] || '';
+}
+
+/* ---------- SETUP ---------- */
+function renderSetup(){
+  return `
+  <div class="setup-screen">
+    <div style="text-align:center;margin-bottom:26px;">
+      <h1 style="font-size:22px;color:var(--green);">Service contract log</h1>
+      <p style="color:var(--ink-soft);font-size:14px;">Set up this device once</p>
+    </div>
+    <div class="card">
+      <label>Which engineer is this phone for?</label>
+      <select id="setup-prefix">
+        <option value="CT">Ciarán Thornton (CT)</option>
+        <option value="NT">Niall Thornton (NT)</option>
+      </select>
+      <p class="hint">This is fixed to this phone. Job numbers will run CT001, CT002... or NT001, NT002...</p>
+      <button class="big-btn btn-primary" id="setup-save">Start using the app</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- JOBS LIST ---------- */
+function renderJobsList(){
+  const today = new Date().toISOString().slice(0,10);
+  const todaysJobs = state.jobs.filter(j => j.date === today).sort((a,b)=>b.createdAt-a.createdAt);
+  const olderJobs = state.jobs.filter(j => j.date !== today).sort((a,b)=>b.createdAt-a.createdAt).slice(0,10);
+
+  const jobRow = j => `
+    <div class="job-item">
+      <div data-open-job="${j.id}" style="flex:1;cursor:pointer;">
+        <div class="code">${j.code}</div>
+        <div class="meta">${escapeHtml(j.site)} · ${j.machines.length} machine${j.machines.length!==1?'s':''}</div>
+        <span class="chip">${j.engineerSig && j.customerSig ? 'Signed off' : 'Draft'}</span>
+      </div>
+      ${j.engineerSig && j.customerSig ? `<button class="btn-outline" style="padding:8px 12px;border-radius:8px;font-size:12px;" data-download-job="${j.id}">Download</button>` : `<div data-open-job="${j.id}" style="color:var(--ink-soft);font-size:20px;">›</div>`}
+    </div>`;
+
+  return `
+  <div class="header">
+    <div class="row">
+      <div>
+        <h1>Service contract log</h1>
+        <div class="sub">${engineer().name} · ${state.engineerPrefix}</div>
+      </div>
+      <button class="icon-btn" data-nav="settings">${icon('settings')}</button>
+    </div>
+  </div>
+  <div class="wrap">
+    ${state.draft ? `
+      <div class="card" style="border-color:var(--amber);background:#fff8ef;">
+        <h2 style="color:var(--amber);">Unfinished job in progress</h2>
+        <p class="hint" style="margin-bottom:10px;">${escapeHtml(state.draft.site || 'No site set')} · ${state.draft.machines.length} machine${state.draft.machines.length!==1?'s':''} entered. This was not lost — pick up where you left off.</p>
+        <button class="big-btn btn-amber" data-nav="newjob">Continue this job</button>
+        <button class="big-btn btn-ghost" id="discard-draft">Discard this job</button>
+      </div>` : ''}
+    <div class="badge-row">
+      <div class="badge"><div class="n">${todaysJobs.length}</div><div class="l">Jobs today</div></div>
+      <div class="badge"><div class="n">${state.jobs.length}</div><div class="l">Total logged</div></div>
+    </div>
+    <button class="big-btn btn-primary" data-nav="newjob">+ New job</button>
+    ${todaysJobs.length ? `<button class="big-btn btn-outline" data-nav="endofday">Download master doc file</button>` : ''}
+    <h2 style="font-size:14px;color:var(--ink-soft);margin:22px 0 10px;text-transform:uppercase;letter-spacing:.03em;">Today</h2>
+    ${todaysJobs.length ? todaysJobs.map(jobRow).join('') :
+      `<div class="empty-state">${icon('empty')}<div>No jobs logged today yet</div></div>`}
+    ${olderJobs.length ? `
+      <h2 style="font-size:14px;color:var(--ink-soft);margin:22px 0 10px;text-transform:uppercase;letter-spacing:.03em;">Recent</h2>
+      ${olderJobs.map(jobRow).join('')}` : ''}
+  </div>
+  <div class="tab-bar">
+    <button class="tab active">${icon('list')}Jobs</button>
+    <button class="tab" data-nav="newjob">${icon('plus')}New job</button>
+    <button class="tab" data-nav="settings">${icon('settings')}Settings</button>
+  </div>`;
+}
+
+/* ---------- JOB FORM ---------- */
+function renderJobForm(){
+  const d = state.draft;
+  const machineBlocks = d.machines.map((m, idx) => `
+    <div class="machine-row">
+      ${d.machines.length > 1 ? `<button class="remove" data-remove-machine="${m.id}">Remove</button>` : ''}
+      <label>Machine</label>
+      ${comboField('machine', state.machines, m.machine, m.id, 'Search or select machine')}
+      <label>Serial number / location</label>
+      <input type="text" data-field="serial" data-mid="${m.id}" value="${escapeHtml(m.serial)}" placeholder="e.g. 4599 (Kitchen)">
+      <label>Parts replaced</label>
+      ${multiSelectWithCustom('partsReplaced', state.parts, m.partsReplaced, m.id)}
+      <label>Parts needed / to order</label>
+      ${multiSelectWithCustom('partsNeeded', state.parts, m.partsNeeded, m.id)}
+    </div>`).join('');
+
+  return `
+  <div class="header">
+    <div class="row">
+      <button class="icon-btn" data-nav="jobs">‹</button>
+      <h1>New job</h1>
+      <div style="width:40px"></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="card">
+      <h2>Visit details</h2>
+      <label>Engineer</label>
+      <div class="eng-fixed">${engineer().name} · ${state.engineerPrefix}</div>
+      <div class="field-row">
+        <div>
+          <label>Date</label>
+          <input type="date" id="draft-date" value="${d.date}">
+        </div>
+        <div>
+          <label>Site</label>
+          ${comboField('site', state.sites, d.site, null, 'Search or select site')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Customer / contact</h2>
+      <label>Name</label>
+      <input type="text" id="cust-name" value="${escapeHtml(d.customer.name)}" placeholder="Contact name">
+      <div class="field-row">
+        <div>
+          <label>Phone</label>
+          <input type="tel" id="cust-phone" value="${escapeHtml(d.customer.phone)}" placeholder="087 123 4567">
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" id="cust-email" value="${escapeHtml(d.customer.email)}" placeholder="name@site.ie">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Machines serviced</h2>
+      ${machineBlocks}
+      <button class="add-machine-btn" id="add-machine">+ Add another machine</button>
+    </div>
+
+    <div class="card">
+      <h2>Follow on / notes</h2>
+      <label>Follow-on action</label>
+      <textarea id="draft-followon" placeholder="e.g. Return to fit dirty water cap">${escapeHtml(d.followOn)}</textarea>
+      <label>Additional notes</label>
+      <textarea id="draft-notes" placeholder="Anything else worth recording">${escapeHtml(d.notes)}</textarea>
+    </div>
+
+    <button class="big-btn btn-primary" id="to-signoff">Continue to sign-off</button>
+    <button class="big-btn btn-ghost" data-nav="jobs">Save as draft and exit</button>
+  </div>`;
+}
+
+/* Searchable combo box: text input + filtered dropdown list, add-new pinned to top of list */
+function comboField(field, list, value, mid, placeholder){
+  const comboId = field + '-' + (mid || 'main');
+  return `
+    <div class="combo-wrap" data-combo-wrap="${comboId}">
+      <input type="text" class="combo-input" data-combo-input="${field}" data-mid="${mid||''}"
+        value="${escapeHtml(value)}" placeholder="${placeholder}" autocomplete="off">
+      ${state.openCombo === comboId ? renderComboList(field, list, mid, comboId) : ''}
+    </div>`;
+}
+
+function renderComboList(field, list, mid, comboId){
+  const query = (document.querySelector(`[data-combo-input="${field}"][data-mid="${mid||''}"]`)?.value || '').toLowerCase();
+  const filtered = list.filter(o => o.toLowerCase().includes(query)).sort((a,b)=>a.localeCompare(b));
+  const items = filtered.slice(0, 40).map(o =>
+    `<div class="combo-item" data-combo-pick="${field}" data-mid="${mid||''}" data-val="${escapeHtml(o)}">${escapeHtml(o)}</div>`).join('');
+  return `
+    <div class="combo-list" data-combo-list="${comboId}">
+      <div class="combo-item add-new" data-combo-addnew="${field}" data-mid="${mid||''}">+ Add new…</div>
+      ${items || `<div class="combo-item" style="color:var(--ink-soft);">No matches</div>`}
+    </div>`;
+}
+
+function multiSelectWithCustom(field, list, selected, mid){
+  const chips = (selected||[]).map(v => `
+    <span class="chip" style="margin-right:5px;cursor:pointer;" data-remove-chip="${field}" data-mid="${mid}" data-val="${escapeHtml(v)}">${escapeHtml(v)} ✕</span>`).join('');
+  const comboId = field + '-' + mid;
+  return `
+    <div style="margin-bottom:6px;">${chips || '<span class="hint">None selected</span>'}</div>
+    <div class="combo-wrap" data-combo-wrap="${comboId}">
+      <input type="text" class="combo-input" data-multi-combo-input="${field}" data-mid="${mid}"
+        value="" placeholder="Search or add part" autocomplete="off">
+      ${state.openCombo === comboId ? renderMultiComboList(field, list, selected, mid, comboId) : ''}
+    </div>`;
+}
+
+function renderMultiComboList(field, list, selected, mid, comboId){
+  const inputEl = document.querySelector(`[data-multi-combo-input="${field}"][data-mid="${mid}"]`);
+  const query = (inputEl ? inputEl.value : '').toLowerCase();
+  const filtered = list.filter(o => o.toLowerCase().includes(query)).sort((a,b)=>a.localeCompare(b));
+  const items = filtered.slice(0, 40).map(o => {
+    const already = (selected||[]).includes(o);
+    return `<div class="combo-item${already?' picked':''}" data-multi-combo-pick="${field}" data-mid="${mid}" data-val="${escapeHtml(o)}">${escapeHtml(o)}${already?' ✓':''}</div>`;
+  }).join('');
+  return `
+    <div class="combo-list" data-combo-list="${comboId}">
+      <div class="combo-item add-new" data-multi-combo-addnew="${field}" data-mid="${mid}">+ Add new…</div>
+      ${items || `<div class="combo-item" style="color:var(--ink-soft);">No matches</div>`}
+    </div>`;
+}
+
+/* ---------- SIGN OFF ---------- */
+function renderSignoff(){
+  const d = state.draft;
+  return `
+  <div class="header">
+    <div class="row">
+      <button class="icon-btn" data-nav="newjob">‹</button>
+      <h1>Sign off</h1>
+      <div style="width:40px"></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="card">
+      <h2>Summary</h2>
+      <p style="font-size:14px;"><strong>${escapeHtml(d.site)}</strong> · ${d.date}</p>
+      <p style="font-size:13px;color:var(--ink-soft);">${d.machines.length} machine${d.machines.length!==1?'s':''} serviced</p>
+    </div>
+    <div class="card">
+      <h2>Engineer signature</h2>
+      <div class="sig-pad-wrap">
+        <canvas class="sig-pad" id="sig-engineer"></canvas>
+        ${!d.engineerSig ? '<div class="sig-pad-hint" id="hint-engineer">Sign here</div>' : ''}
+      </div>
+      <div class="sig-label"><span class="hint">${engineer().name}</span>
+        <button class="sig-clear" data-clear-sig="engineer">Clear</button></div>
+    </div>
+    <div class="card">
+      <h2>Customer signature</h2>
+      <label>Signed by (print name)</label>
+      <input type="text" id="cust-sign-name" value="${escapeHtml(d.customerSignName||'')}" placeholder="Customer name">
+      <div class="sig-pad-wrap" style="margin-top:10px;">
+        <canvas class="sig-pad" id="sig-customer"></canvas>
+        ${!d.customerSig ? '<div class="sig-pad-hint" id="hint-customer">Sign here</div>' : ''}
+      </div>
+      <div class="sig-label"><span class="hint">Customer confirms work completed as described</span>
+        <button class="sig-clear" data-clear-sig="customer">Clear</button></div>
+    </div>
+    <button class="big-btn btn-primary" id="finish-job">Complete job</button>
+  </div>`;
+}
+
+let sigPads = {};
+function initSignaturePads(){
+  ['engineer','customer'].forEach(who=>{
+    const canvas = document.getElementById('sig-'+who);
+    if (!canvas) return;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(ratio, ratio);
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    let drawing = false, lastX=0, lastY=0;
+    const hintEl = document.getElementById('hint-'+who);
+    const existing = state.draft[who+'Sig'];
+    if (existing){
+      const img = new Image();
+      img.onload = ()=> ctx.drawImage(img,0,0,canvas.offsetWidth,canvas.offsetHeight);
+      img.src = existing;
+    }
+    function pos(e){
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches ? e.touches[0] : e;
+      return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+    }
+    function start(e){
+      e.preventDefault(); drawing=true; const p=pos(e); lastX=p.x; lastY=p.y;
+      if (hintEl) hintEl.style.display = 'none';
+    }
+    function move(e){
+      if(!drawing) return; e.preventDefault();
+      const p = pos(e);
+      ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+      lastX=p.x; lastY=p.y;
+    }
+    function end(){
+      if(!drawing) return;
+      drawing=false;
+      state.draft[who+'Sig'] = canvas.toDataURL('image/png');
+      DB.set('draft', state.draft);
+    }
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, {passive:false});
+    canvas.addEventListener('touchmove', move, {passive:false});
+    canvas.addEventListener('touchend', end);
+    sigPads[who] = { canvas, ctx };
+  });
+}
+
+/* ---------- END OF DAY / MASTER DOC EXPORT ---------- */
+function renderEndOfDay(){
+  const today = new Date().toISOString().slice(0,10);
+  const todaysJobs = state.jobs.filter(j => j.date === today);
+  const bySite = {};
+  todaysJobs.forEach(j => { (bySite[j.site] = bySite[j.site]||[]).push(j); });
+
+  return `
+  <div class="header">
+    <div class="row">
+      <button class="icon-btn" data-nav="jobs">‹</button>
+      <h1>Master doc export</h1>
+      <div style="width:40px"></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <p class="hint" style="margin-bottom:14px;">${todaysJobs.length} job${todaysJobs.length!==1?'s':''} logged today across ${Object.keys(bySite).length} site${Object.keys(bySite).length!==1?'s':''}. These files match your master spreadsheet columns for pasting in — nothing is sent to clients from this app.</p>
+    <button class="big-btn btn-primary" id="download-day-csv">Download today's log (.csv)</button>
+    <button class="big-btn btn-outline" id="download-day-json">Download raw job data (.json backup)</button>
+    <h2 style="font-size:14px;color:var(--ink-soft);margin:20px 0 10px;text-transform:uppercase;">Individual site logs</h2>
+    ${Object.keys(bySite).map(site => `
+      <div class="job-item">
+        <div><div class="code">${escapeHtml(site)}</div><div class="meta">${bySite[site].length} job${bySite[site].length!==1?'s':''}</div></div>
+        <button class="btn-outline" style="padding:8px 14px;border-radius:8px;font-size:13px;" data-download-site="${escapeHtml(site)}">Download</button>
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ---------- SETTINGS ---------- */
+function renderSettings(){
+  return `
+  <div class="header">
+    <div class="row">
+      <button class="icon-btn" data-nav="jobs">‹</button>
+      <h1>Settings</h1>
+      <div style="width:40px"></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="card">
+      <h2>Engineer</h2>
+      <p style="font-size:15px;">${engineer().name}</p>
+      <p class="hint">Job code prefix: ${state.engineerPrefix} · next job will be ${state.engineerPrefix}${String((state.counters[state.engineerPrefix]||0)+1).padStart(3,'0')}</p>
+    </div>
+    <div class="card">
+      <h2>Sites (${state.sites.length})</h2>
+      <p class="hint">${state.sites.slice().sort().join(', ')}</p>
+    </div>
+    <div class="card">
+      <h2>Machines (${state.machines.length})</h2>
+      <p class="hint">${state.machines.slice().sort().join(', ')}</p>
+    </div>
+    <div class="card">
+      <h2>Parts (${state.parts.length})</h2>
+      <p class="hint">${state.parts.slice().sort().join(', ')}</p>
+    </div>
+    <div class="card">
+      <h2>All logged jobs</h2>
+      <p class="hint">${state.jobs.length} jobs stored on this device.</p>
+      <button class="big-btn btn-outline" id="export-all">Export all jobs (.csv)</button>
+      <button class="big-btn btn-ghost" data-nav="deletejobs">Delete jobs</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- DELETE JOBS (settings sub-screen) ---------- */
+function renderDeleteJobs(){
+  const sorted = state.jobs.slice().sort((a,b)=>b.createdAt-a.createdAt);
+  const row = j => `
+    <div class="job-item">
+      <div style="flex:1;">
+        <div class="code">${j.code}</div>
+        <div class="meta">${escapeHtml(j.site)} · ${j.date} · ${j.machines.length} machine${j.machines.length!==1?'s':''}</div>
+        <span class="chip">${j.engineerSig && j.customerSig ? 'Signed off' : 'Draft'}</span>
+      </div>
+      <button class="btn-outline" style="padding:8px 12px;border-radius:8px;font-size:12px;color:var(--red);border-color:var(--red);" data-delete-job="${j.id}" data-delete-code="${j.code}">Delete</button>
+    </div>`;
+
+  return `
+  <div class="header">
+    <div class="row">
+      <button class="icon-btn" data-nav="settings">‹</button>
+      <h1>Delete jobs</h1>
+      <div style="width:40px"></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <p class="hint" style="margin-bottom:14px;">Deleting a job removes it permanently from this device. If you need a copy first, download it from the jobs list before deleting.</p>
+    ${sorted.length ? sorted.map(row).join('') : `<div class="empty-state">${icon('empty')}<div>No jobs logged yet</div></div>`}
+  </div>`;
+}
+
+/* ---------- MODAL (custom entry) ---------- */
+function renderModal(){
+  const m = state.modal;
+  return `
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <h3>Add new ${m.label}</h3>
+      <input type="text" id="modal-input" placeholder="Type new ${m.label}" value="${escapeHtml(m.prefill||'')}" autofocus>
+      <button class="big-btn btn-primary" id="modal-save">Save and use</button>
+      <button class="big-btn btn-ghost" id="modal-cancel">Cancel</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- Event handling ---------- */
+function attachHandlers(){
+  document.querySelectorAll('[data-nav]').forEach(el=>{
+    el.onclick = ()=>{
+      const target = el.getAttribute('data-nav');
+      if (target === 'newjob' && state.screen !== 'newjob' && !state.draft){
+        state.draft = newDraft();
+      }
+      state.screen = target;
+      state.openCombo = null;
+      render();
+    };
+  });
+
+  document.querySelectorAll('[data-open-job]').forEach(el=>{
+    el.onclick = ()=>{
+      const job = state.jobs.find(j=>j.id===el.getAttribute('data-open-job'));
+      if (job){ state.draft = job; state.screen = 'newjob'; render(); }
+    };
+  });
+
+  const discardDraftBtn = document.getElementById('discard-draft');
+  if (discardDraftBtn) discardDraftBtn.onclick = ()=>{
+    if (confirm('Discard this unfinished job? This cannot be undone.')){
+      state.draft = null;
+      DB.set('draft', null);
+      render();
+    }
+  };
+
+  const setupSave = document.getElementById('setup-save');
+  if (setupSave) setupSave.onclick = ()=>{
+    const prefix = document.getElementById('setup-prefix').value;
+    state.engineerPrefix = prefix;
+    saveState();
+    state.screen = 'jobs';
+    render();
+  };
+
+  bindIfExists('draft-date', 'input', e => state.draft.date = e.target.value);
+  bindIfExists('cust-name', 'input', e => state.draft.customer.name = e.target.value);
+  bindIfExists('cust-phone', 'input', e => state.draft.customer.phone = e.target.value);
+  bindIfExists('cust-email', 'input', e => state.draft.customer.email = e.target.value);
+  bindIfExists('draft-followon', 'input', e => state.draft.followOn = e.target.value);
+  bindIfExists('draft-notes', 'input', e => state.draft.notes = e.target.value);
+  bindIfExists('cust-sign-name', 'input', e => state.draft.customerSignName = e.target.value);
+
+  document.querySelectorAll('[data-field="serial"]').forEach(el=>{
+    el.oninput = e=>{
+      const mid = el.getAttribute('data-mid');
+      const m = state.draft.machines.find(x=>x.id===mid);
+      if (m) m.serial = e.target.value;
+    };
+  });
+
+  /* Combo box behaviour */
+  document.querySelectorAll('[data-combo-input]').forEach(el=>{
+    const field = el.getAttribute('data-combo-input');
+    const mid = el.getAttribute('data-mid');
+    const comboId = field + '-' + (mid || 'main');
+    el.onfocus = ()=>{
+      state.openCombo = comboId;
+      renderComboOnly(comboId, field, mid);
+    };
+    el.oninput = e=>{
+      if (field === 'site') state.draft.site = e.target.value;
+      else { const m = state.draft.machines.find(x=>x.id===mid); if (m) m.machine = e.target.value; }
+      state.openCombo = comboId;
+      renderComboOnly(comboId, field, mid);
+    };
+  });
+
+  document.querySelectorAll('[data-combo-pick]').forEach(el=>{
+    el.onclick = ()=>{
+      const field = el.getAttribute('data-combo-pick');
+      const mid = el.getAttribute('data-mid');
+      const val = el.getAttribute('data-val');
+      if (field === 'site') state.draft.site = val;
+      else { const m = state.draft.machines.find(x=>x.id===mid); if (m) m.machine = val; }
+      state.openCombo = null;
+      render();
+    };
+  });
+
+  document.querySelectorAll('[data-combo-addnew]').forEach(el=>{
+    el.onclick = ()=>{
+      const field = el.getAttribute('data-combo-addnew');
+      const mid = el.getAttribute('data-mid');
+      const inputEl = document.querySelector(`[data-combo-input="${field}"][data-mid="${mid||''}"]`);
+      const typed = inputEl ? inputEl.value : '';
+      openCustomModal(field === 'site' ? 'site' : 'machine', typed, (newVal)=>{
+        if (field === 'site') state.draft.site = newVal;
+        else { const m = state.draft.machines.find(x=>x.id===mid); if (m) m.machine = newVal; }
+      });
+      state.openCombo = null;
+      render();
+    };
+  });
+
+  // close combo lists when tapping outside
+  document.querySelectorAll('.wrap').forEach(w=>{
+    w.addEventListener('click', (e)=>{
+      if (!e.target.closest('.combo-wrap') && state.openCombo){
+        state.openCombo = null;
+        render();
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-multi-combo-input]').forEach(el=>{
+    const field = el.getAttribute('data-multi-combo-input');
+    const mid = el.getAttribute('data-mid');
+    const comboId = field + '-' + mid;
+    el.onfocus = ()=>{
+      state.openCombo = comboId;
+      renderMultiComboOnly(comboId, field, mid);
+    };
+    el.oninput = ()=>{
+      state.openCombo = comboId;
+      renderMultiComboOnly(comboId, field, mid);
+    };
+  });
+
+  document.querySelectorAll('[data-multi-combo-pick]').forEach(el=>{
+    attachMultiComboPick(el);
+  });
+  document.querySelectorAll('[data-multi-combo-addnew]').forEach(el=>{
+    attachMultiComboAddNew(el);
+  });
+
+  document.querySelectorAll('[data-remove-chip]').forEach(el=>{
+    el.onclick = ()=>{
+      const field = el.getAttribute('data-remove-chip');
+      const mid = el.getAttribute('data-mid');
+      const val = el.getAttribute('data-val');
+      const m = state.draft.machines.find(x=>x.id===mid);
+      if (m) m[field] = m[field].filter(v=>v!==val);
+      render();
+    };
+  });
+
+  document.querySelectorAll('[data-remove-machine]').forEach(el=>{
+    el.onclick = ()=>{
+      const mid = el.getAttribute('data-remove-machine');
+      state.draft.machines = state.draft.machines.filter(m=>m.id!==mid);
+      render();
+    };
+  });
+
+  const addMachine = document.getElementById('add-machine');
+  if (addMachine) addMachine.onclick = ()=>{
+    state.draft.machines.push(newMachineEntry());
+    render();
+  };
+
+  const toSignoff = document.getElementById('to-signoff');
+  if (toSignoff) toSignoff.onclick = ()=>{
+    if (!state.draft.site){ showToast('Select a site before continuing'); return; }
+    const hasEmptyMachine = state.draft.machines.some(m=>!m.machine);
+    if (hasEmptyMachine){ showToast('Select a machine for each row'); return; }
+    state.screen = 'signoff';
+    render();
+  };
+
+  document.querySelectorAll('[data-clear-sig]').forEach(el=>{
+    el.onclick = ()=>{
+      const who = el.getAttribute('data-clear-sig');
+      state.draft[who+'Sig'] = null;
+      const canvas = document.getElementById('sig-'+who);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    };
+  });
+
+  const finishBtn = document.getElementById('finish-job');
+  if (finishBtn) finishBtn.onclick = ()=> finishJob();
+
+  const exportAll = document.getElementById('export-all');
+  if (exportAll) exportAll.onclick = ()=> downloadCSV(state.jobs, 'all_jobs');
+
+  document.querySelectorAll('[data-delete-job]').forEach(el=>{
+    el.onclick = ()=>{
+      const id = el.getAttribute('data-delete-job');
+      const code = el.getAttribute('data-delete-code');
+      if (confirm('Delete job ' + code + ' permanently? This cannot be undone.')){
+        state.jobs = state.jobs.filter(j=>j.id!==id);
+        saveState();
+        showToast(code + ' deleted');
+        render();
+      }
+    };
+  });
+
+  const downloadDayCsv = document.getElementById('download-day-csv');
+  if (downloadDayCsv) downloadDayCsv.onclick = ()=>{
+    const today = new Date().toISOString().slice(0,10);
+    downloadCSV(state.jobs.filter(j=>j.date===today), 'master_doc_' + today + '_' + state.engineerPrefix);
+  };
+  const downloadDayJson = document.getElementById('download-day-json');
+  if (downloadDayJson) downloadDayJson.onclick = ()=>{
+    const today = new Date().toISOString().slice(0,10);
+    downloadJSON(state.jobs.filter(j=>j.date===today), 'backup_' + today + '_' + state.engineerPrefix);
+  };
+  document.querySelectorAll('[data-download-site]').forEach(el=>{
+    el.onclick = ()=>{
+      const site = el.getAttribute('data-download-site');
+      const today = new Date().toISOString().slice(0,10);
+      const jobs = state.jobs.filter(j=>j.date===today && j.site===site);
+      downloadCSV(jobs, site.replace(/\s+/g,'_') + '_' + today);
+    };
+  });
+
+  document.querySelectorAll('[data-download-job]').forEach(el=>{
+    el.onclick = ()=>{
+      const job = state.jobs.find(j=>j.id===el.getAttribute('data-download-job'));
+      if (job) downloadCSV([job], job.code + '_' + job.site.replace(/\s+/g,'_') + '_' + job.date);
+    };
+  });
+
+  const modalCancel = document.getElementById('modal-cancel');
+  if (modalCancel) modalCancel.onclick = ()=>{ state.modal = null; render(); };
+  const modalSave = document.getElementById('modal-save');
+  if (modalSave) modalSave.onclick = ()=>{
+    const val = document.getElementById('modal-input').value.trim();
+    if (!val){ return; }
+    const m = state.modal;
+    if (m.kind === 'site' && !state.sites.includes(val)) state.sites.push(val);
+    if (m.kind === 'machine' && !state.machines.includes(val)) state.machines.push(val);
+    if (m.kind === 'part' && !state.parts.includes(val)) state.parts.push(val);
+    saveState();
+    m.onSave(val);
+    state.modal = null;
+    render();
+  };
+}
+
+/* Re-render only the dropdown portion of a combo box on typing, to avoid losing focus */
+function renderComboOnly(comboId, field, mid){
+  const wrap = document.querySelector(`[data-combo-wrap="${comboId}"]`);
+  if (!wrap) return;
+  const list = field === 'site' ? state.sites : state.machines;
+  const existingList = wrap.querySelector('.combo-list');
+  const html = renderComboList(field, list, mid, comboId);
+  if (existingList) existingList.outerHTML = html;
+  else wrap.insertAdjacentHTML('beforeend', html);
+  attachComboListHandlers();
+}
+function attachComboListHandlers(){
+  document.querySelectorAll('[data-combo-pick]').forEach(el=>{
+    el.onclick = ()=>{
+      const field = el.getAttribute('data-combo-pick');
+      const mid = el.getAttribute('data-mid');
+      const val = el.getAttribute('data-val');
+      if (field === 'site') state.draft.site = val;
+      else { const m = state.draft.machines.find(x=>x.id===mid); if (m) m.machine = val; }
+      state.openCombo = null;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-combo-addnew]').forEach(el=>{
+    el.onclick = ()=>{
+      const field = el.getAttribute('data-combo-addnew');
+      const mid = el.getAttribute('data-mid');
+      const inputEl = document.querySelector(`[data-combo-input="${field}"][data-mid="${mid||''}"]`);
+      const typed = inputEl ? inputEl.value : '';
+      openCustomModal(field === 'site' ? 'site' : 'machine', typed, (newVal)=>{
+        if (field === 'site') state.draft.site = newVal;
+        else { const m = state.draft.machines.find(x=>x.id===mid); if (m) m.machine = newVal; }
+      });
+      state.openCombo = null;
+      render();
+    };
+  });
+}
+function refocusCombo(comboId){
+  // no-op placeholder, focus retained naturally since only list re-renders on input
+}
+
+function renderMultiComboOnly(comboId, field, mid){
+  const wrap = document.querySelector(`[data-combo-wrap="${comboId}"]`);
+  if (!wrap) return;
+  const m = state.draft.machines.find(x=>x.id===mid);
+  const selected = m ? m[field] : [];
+  const existingList = wrap.querySelector('.combo-list');
+  const html = renderMultiComboList(field, state.parts, selected, mid, comboId);
+  if (existingList) existingList.outerHTML = html;
+  else wrap.insertAdjacentHTML('beforeend', html);
+  document.querySelectorAll('[data-multi-combo-pick]').forEach(el=> attachMultiComboPick(el));
+  document.querySelectorAll('[data-multi-combo-addnew]').forEach(el=> attachMultiComboAddNew(el));
+}
+function attachMultiComboPick(el){
+  el.onclick = ()=>{
+    const field = el.getAttribute('data-multi-combo-pick');
+    const mid = el.getAttribute('data-mid');
+    const val = el.getAttribute('data-val');
+    const m = state.draft.machines.find(x=>x.id===mid);
+    if (!m) return;
+    if (m[field].includes(val)) m[field] = m[field].filter(v=>v!==val);
+    else m[field].push(val);
+    const comboId = field + '-' + mid;
+    state.openCombo = comboId;
+    render();
+    const inputEl = document.querySelector(`[data-multi-combo-input="${field}"][data-mid="${mid}"]`);
+    if (inputEl) inputEl.focus();
+  };
+}
+function attachMultiComboAddNew(el){
+  el.onclick = ()=>{
+    const field = el.getAttribute('data-multi-combo-addnew');
+    const mid = el.getAttribute('data-mid');
+    const inputEl = document.querySelector(`[data-multi-combo-input="${field}"][data-mid="${mid}"]`);
+    const typed = inputEl ? inputEl.value : '';
+    openCustomModal('part', typed, (newVal)=>{
+      const m = state.draft.machines.find(x=>x.id===mid);
+      if (m && !m[field].includes(newVal)) m[field].push(newVal);
+    });
+    state.openCombo = null;
+    render();
+  };
+}
+
+function bindIfExists(id, evt, fn){
+  const el = document.getElementById(id);
+  if (el) el[evt === 'input' ? 'oninput' : 'onchange'] = fn;
+}
+
+function openCustomModal(kind, prefill, onSave){
+  const labels = { site:'site', machine:'machine', part:'part' };
+  state.modal = { kind, label: labels[kind], prefill, onSave };
+}
+
+/* ---------- Finish job: save (no client email/report from this app) ---------- */
+function finishJob(){
+  const d = state.draft;
+  if (!d.engineerSig){ showToast('Engineer signature required'); return; }
+  if (!d.customerSig){ showToast('Customer signature required'); return; }
+
+  const existingIdx = state.jobs.findIndex(j=>j.id===d.id);
+  if (!d.code) d.code = nextJobCode();
+
+  if (existingIdx >= 0) state.jobs[existingIdx] = d;
+  else state.jobs.push(d);
+
+  // Clear the draft and switch screens BEFORE anything that triggers a render
+  // (like showToast) — otherwise a render could fire while still on the job
+  // form screen but with a null draft, which would crash, or could re-persist
+  // the completed job back into the draft slot.
+  state.draft = null;
+  DB.set('draft', null);
+  saveState();
+  state.screen = 'jobs';
+
+  showToast(d.code + ' saved');
+  render();
+}
+
+/* ---------- CSV / JSON export (master-doc compatible) ---------- */
+function downloadCSV(jobs, filename){
+  const headers = ['Job Code','Submission Date','Site','Machine','Serial Number (Location)','Parts replaced','Parts needed','Follow on','Customer Name','Customer Phone','Customer Email'];
+  const rows = [headers];
+  jobs.forEach(j=>{
+    const machines = (j.machines && j.machines.length) ? j.machines : [{}];
+    machines.forEach(m=>{
+      const partsReplaced = Array.isArray(m.partsReplaced) ? m.partsReplaced : [];
+      const partsNeeded = Array.isArray(m.partsNeeded) ? m.partsNeeded : [];
+      const customer = j.customer || {};
+      rows.push([
+        j.code || '—', j.date || '—', j.site || '—', m.machine || '—', m.serial || '—',
+        partsReplaced.length ? partsReplaced.join('; ') : '—',
+        partsNeeded.length ? partsNeeded.join('; ') : '—',
+        j.followOn || '—',
+        customer.name || '—', customer.phone || '—', customer.email || '—'
+      ]);
+    });
+  });
+  const csv = rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+  triggerDownload(csv, filename + '.csv', 'text/csv');
+}
+function csvEscape(v){
+  v = (v===undefined||v===null) ? '' : String(v);
+  if (/[",\r\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
+  return v;
+}
+function downloadJSON(jobs, filename){
+  triggerDownload(JSON.stringify(jobs, null, 2), filename + '.json', 'application/json');
+}
+function triggerDownload(content, filename, mime){
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  // Some Android browsers read the blob asynchronously after the click, so
+  // revoking the URL immediately can produce an empty or truncated download.
+  // Give it a moment before releasing the object URL.
+  setTimeout(()=> URL.revokeObjectURL(url), 4000);
+}
+
+render();
+</script>
+</body>
+</html>
